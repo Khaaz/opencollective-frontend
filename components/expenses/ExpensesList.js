@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import FlipMove from 'react-flip-move';
 import styled, { css } from 'styled-components';
 
 import ExpenseBudgetItem from '../budget/ExpenseBudgetItem';
@@ -33,22 +34,24 @@ const ExpensesList = ({
 
   return (
     <StyledCard>
-      {expenses.map((expense, idx) => (
-        <ExpenseContainer key={expense?.id || idx} isFirst={!idx} data-cy={`expense-${expense?.status}`}>
-          <ExpenseBudgetItem
-            isLoading={isLoading}
-            isInverted={isInverted}
-            collective={collective || expense?.account}
-            expense={expense}
-            host={host}
-            showProcessActions
-            view={view}
-            usePreviewModal={usePreviewModal}
-            onDelete={onDelete}
-            onProcess={onProcess}
-          />
-        </ExpenseContainer>
-      ))}
+      <FlipMove enterAnimation="fade" leaveAnimation="fade">
+        {expenses.map((expense, idx) => (
+          <ExpenseContainer key={expense?.id || idx} isFirst={!idx} data-cy={`expense-${expense?.status}`}>
+            <ExpenseBudgetItem
+              isLoading={isLoading}
+              isInverted={isInverted}
+              collective={collective || expense?.account}
+              expense={expense}
+              host={host}
+              showProcessActions
+              view={view}
+              usePreviewModal={usePreviewModal}
+              onDelete={onDelete}
+              onProcess={onProcess}
+            />
+          </ExpenseContainer>
+        ))}
+      </FlipMove>
     </StyledCard>
   );
 };

@@ -7,6 +7,7 @@ import { FormattedMessage } from 'react-intl';
 
 import EXPENSE_STATUS from '../../lib/constants/expense-status';
 import { API_V2_CONTEXT, gqlV2 } from '../../lib/graphql/helpers';
+import { useLazyGraphQLPaginatedResults } from '../../lib/hooks/useLazyGraphQLPaginatedResults';
 import { Router } from '../../server/pages';
 
 import { parseAmountRange } from '../budget/filters/AmountFilter';
@@ -101,7 +102,7 @@ const getVariablesFromQuery = query => {
   const [dateFrom] = getDateRangeFromPeriod(query.period);
   return {
     offset: parseInt(query.offset) || 0,
-    limit: parseInt(query.limit) || EXPENSES_PER_PAGE,
+    limit: (parseInt(query.limit) || EXPENSES_PER_PAGE) * 2,
     status: isValidStatus(query.status) ? query.status : null,
     type: query.type,
     tags: query.tag ? [query.tag] : undefined,
@@ -113,20 +114,21 @@ const getVariablesFromQuery = query => {
   };
 };
 
-const HostDashboardExpenses = ({ hostSlug }) => {
-  const { query } = useRouter() || {};
-  const [paypalPreApprovalError, setPaypalPreApprovalError] = React.useState(null);
-  const { data, error, loading, variables, refetch } = useQuery(hostDashboardExpensesQuery, {
-    variables: { hostSlug, ...getVariablesFromQuery(query) },
-    context: API_V2_CONTEXT,
+const hasParams = query => {
+  return Object.entries(query).some(([key, value]) => {
+    return !['view', 'offset', 'limit', 'hostCollectiveSlug', 'paypalApprovalError'].includes(key) && value;
   });
-  const hasFilters = React.useMemo(
-    () =>
-      Object.entries(query).some(([key, value]) => {
-        return !['view', 'offset', 'limit', 'hostCollectiveSlug', 'paypalApprovalError'].includes(key) && value;
-      }),
-    [query],
-  );
+};
+
+const HostDashboardExpenses = ({ hostSlug }) => {
+  const router = useRouter() || {};
+  const [paypalPreApprovalError, setPaypalPreApprovalError] = React.useState(null);
+  const hasFilters = React.useMemo(() => hasParams(router.query), [router.query]);
+  const variables = { hostSlug, ...getVariablesFromQuery(router.query) };
+  const context = API_V2_CONTEXT;
+  const query = useQuery(hostDashboardExpensesQuery, { variables, context });
+  const { data, error, loading, refetch } = query;
+  const paginatedExpenses = useLazyGraphQLPaginatedResults(query, 'expenses');
 
   React.useEffect(() => {
     if (query.paypalApprovalError && !paypalPreApprovalError) {
@@ -233,20 +235,20 @@ const HostDashboardExpenses = ({ hostSlug }) => {
         <React.Fragment>
           <ExpensesList
             isLoading={loading}
-            nbPlaceholders={variables.limit}
             host={data?.host}
-            expenses={data?.expenses?.nodes}
+            nbPlaceholders={paginatedExpenses.limit}
+            expenses={paginatedExpenses.nodes}
             view="admin"
             usePreviewModal
-            onDelete={() => refetch()}
-            onProcess={() => hasFilters && refetch()}
+            // onDelete={() => refetch()}
+            // onProcess={() => hasFilters && refetch()}
           />
           <Flex mt={5} justifyContent="center">
             <Pagination
               route="host.dashboard"
-              total={data?.expenses?.totalCount}
-              limit={variables.limit}
-              offset={variables.offset}
+              total={paginatedExpenses.totalCount}
+              limit={paginatedExpenses.limit}
+              offset={paginatedExpenses.offset}
               scrollToTopOnChange
             />
           </Flex>
