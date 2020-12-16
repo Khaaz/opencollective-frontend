@@ -45,7 +45,7 @@ import PaymentReceipts from './sections/PaymentReceipts';
 import Policies from './sections/Policies';
 import ReceivingMoney from './sections/ReceivingMoney';
 import SendingMoney from './sections/SendingMoney';
-import SetupTwoFactorAuth from './sections/SetupTwoFactorAuth';
+import UserTwoFactorAuth from './sections/UserTwoFactorAuth';
 import Tickets from './sections/Tickets';
 import Tiers from './sections/Tiers';
 import Updates from './sections/Updates';
@@ -492,7 +492,7 @@ class EditCollectiveForm extends React.Component {
 
       // 2FA
       case EDIT_COLLECTIVE_SECTIONS.TWO_FACTOR_AUTH:
-        return <SetupTwoFactorAuth slug={collective.slug} userEmail={LoggedInUser.email} />;
+        return <UserTwoFactorAuth slug={collective.slug} userEmail={LoggedInUser.email} />;
 
       // Payment Receipts
       case EDIT_COLLECTIVE_SECTIONS.PAYMENT_RECEIPTS:

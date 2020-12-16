@@ -58,7 +58,7 @@ const TokenBox = styled(Box)`
   word-wrap: break-word;
 `;
 
-class SetupTwoFactorAuth extends React.Component {
+class UserTwoFactorAuth extends React.Component {
   static propTypes = {
     /** From intl */
     intl: PropTypes.object.isRequired,
@@ -434,10 +434,13 @@ class SetupTwoFactorAuth extends React.Component {
 const addTwoFactorAuthToIndividualMutation = gqlV2/* GraphQL */ `
   mutation AddTwoFactorAuthToIndividual($account: AccountReferenceInput!, $token: String!) {
     addTwoFactorAuthTokenToIndividual(account: $account, token: $token) {
-      id
-      ... on Individual {
-        hasTwoFactorAuth
+      account {
+        id
+        ... on Individual {
+          hasTwoFactorAuth
+        }
       }
+      recoveryCodes
     }
   }
 `;
@@ -492,4 +495,4 @@ const addGraphql = compose(
   addAccountHasTwoFactorAuthData,
 );
 
-export default injectIntl(withUser(addGraphql(SetupTwoFactorAuth)));
+export default injectIntl(withUser(addGraphql(UserTwoFactorAuth)));
